@@ -8,6 +8,7 @@
   :root{
     --green: #00ff66;
     --gold:  #ffcc00;
+    --red:   #ff0033;
     --bg:    #000000;
   }
   html, body { height: 100%; }
@@ -32,6 +33,12 @@
   .gold {
     color: var(--gold);
     text-shadow: 0 0 8px rgba(255,204,0,0.6);
+    font-weight: bold;
+  }
+  .red {
+    color: var(--red);
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(255,0,51,0.6);
   }
 
   /* Centered, responsive image */
@@ -51,6 +58,26 @@
     opacity: 1;
     transform: translateY(0);
   }
+
+  /* Progress bar */
+  .bar-wrap {
+    margin-top: 6px;
+    width: 100%;
+    max-width: 520px;
+    border: 1px solid var(--green);
+    padding: 2px;
+    box-shadow: 0 0 8px rgba(0,255,102,0.25) inset;
+  }
+  .bar {
+    height: 14px;
+    width: 0%;
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(0,255,102,0.65);
+    transition: width 0.05s linear;
+  }
+  .pct {
+    margin-top: 4px;
+  }
 </style>
 </head>
 <body>
@@ -68,19 +95,53 @@ async function typeText(text, speed = 50) {
   }
 }
 
+async function typeSpan(text, className, speed = 50) {
+  const span = document.createElement("span");
+  span.className = className;
+  pre.appendChild(span);
+  for (let i = 0; i < text.length; i++) {
+    span.textContent += text[i];
+    await sleep(speed);
+  }
+}
+
 async function newLine(delay = 400) {
   pre.innerHTML += "<br>";
   await sleep(delay);
 }
 
-// Extended 6-second progress bar: overwrites percentage on same line
+// Solid bar 5-second progress
+function addProgressBar() {
+  const wrap = document.createElement('div');
+  const barWrap = document.createElement('div');
+  const bar = document.createElement('div');
+  const pct = document.createElement('div');
+  barWrap.className = 'bar-wrap';
+  bar.className = 'bar';
+  pct.className = 'pct';
+  wrap.appendChild(barWrap);
+  barWrap.appendChild(bar);
+  wrap.appendChild(pct);
+  pre.appendChild(wrap);
+  return { bar, pct };
+}
+
 async function progressBar() {
-  // Ensure we start with 0% at the end of the current line
-  pre.innerHTML += "0%";
-  for (let i = 2; i <= 100; i += 2) {
-    pre.innerHTML = pre.innerHTML.replace(/\d{1,3}%$/, "") + i + "%";
-    await sleep(120); // 100% * 120ms ≈ 6s
-  }
+  const { bar, pct } = addProgressBar();
+  const duration = 5000; // 5 seconds
+  const start = performance.now();
+
+  await new Promise(resolve => {
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      const p = Math.round(t * 100);
+      bar.style.width = p + "%";
+      pct.textContent = " " + p + "%";
+      if (t < 1) requestAnimationFrame(step);
+      else resolve();
+    };
+    requestAnimationFrame(step);
+  });
 }
 
 async function run() {
@@ -90,34 +151,36 @@ async function run() {
   await typeText("C:\\DOOM> doom.exe");
   await newLine(); await newLine();
 
-  await typeText("Loading DOOM... ");
-  await progressBar();   // ~6 seconds
+  await typeText("Loading DOOM...");
+  await progressBar();
   await newLine(); await newLine();
 
-  await typeText("> IDDQD");
+  // TYPE the red bold IDDQD
+  await typeSpan("> IDDQD", "red");
+  await newLine(); await newLine();
+
+  // Symmetrical dot lines around INITIALISING (8 above, 8 below)
+  await typeText("........");
   await newLine();
-  await typeText("........ INITIALISING ........");
+  await typeText("INITIALISING");
+  await newLine();
+  await typeText("........");
   await newLine(); await newLine();
 
-  // Gold final message
-  const goldText = document.createElement("span");
-  goldText.className = "gold";
-  goldText.textContent = ": God mode activated at Chris's 40th birthday";
-  pre.appendChild(goldText);
+  // Type the gold final message slowly
+  await typeSpan("> GOD MODE Activated for Chris's 40th Birthday", "gold", 60);
+  await newLine(); await newLine();
 
-  // Line breaks then image element (centered, fades in)
-  pre.innerHTML += "<br><br>";
+  // Add and fade in image
   const img = document.createElement("img");
   img.className = "poster";
   img.alt = "Doom themed poster";
   img.src = "https://pbs.twimg.com/media/GgsQO4YX0AAyEFG.jpg";
   pre.appendChild(img);
 
-  // Wait a beat, then reveal image with fade-in
   await sleep(300);
   img.classList.add("show");
 
-  // Blinking underscore cursor at the very end
   const cursor = document.createElement("span");
   cursor.className = "cursor";
   cursor.textContent = "_";
