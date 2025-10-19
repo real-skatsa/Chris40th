@@ -41,18 +41,18 @@
     text-shadow: 0 0 8px rgba(255,0,51,0.6);
   }
 
-  /* Centered, responsive image */
+  /* Centered, responsive image at ~50% of prior size */
   .poster {
     display: block;
     margin: 24px auto;
-    max-width: 90%;
-    width: 700px;
+    max-width: 45%;
+    width: 350px;
     height: auto;
     border: 1px solid var(--green);
     box-shadow: 0 0 8px rgba(0,255,102,0.25);
     opacity: 0;
     transform: translateY(6px);
-    transition: opacity 800ms ease, transform 800ms ease;
+    transition: opacity 900ms ease, transform 900ms ease;
   }
   .poster.show {
     opacity: 1;
@@ -103,6 +103,7 @@ async function typeSpan(text, className, speed = 50) {
     span.textContent += text[i];
     await sleep(speed);
   }
+  return span;
 }
 
 async function newLine(delay = 400) {
@@ -153,7 +154,7 @@ async function run() {
 
   await typeText("Loading DOOM...");
   await progressBar();
-  await newLine(); await newLine();
+  await newLine(); // single line to keep even spacing
 
   // TYPE the red bold IDDQD
   await typeSpan("> IDDQD", "red");
@@ -167,20 +168,26 @@ async function run() {
   await typeText("........");
   await newLine(); await newLine();
 
-  // Type the gold final message slowly
-  await typeSpan("> GOD MODE Activated for Chris's 40th Birthday", "gold", 60);
-  await newLine(); await newLine();
-
-  // Add and fade in image
+  // Prepare image BEFORE the gold line, so it can fade while typing
   const img = document.createElement("img");
   img.className = "poster";
   img.alt = "Doom themed poster";
   img.src = "https://pbs.twimg.com/media/GgsQO4YX0AAyEFG.jpg";
   pre.appendChild(img);
 
-  await sleep(300);
+  // Start typing the gold line slowly
+  const goldPromise = typeSpan("> GOD MODE Activated for Chris's 40th Birthday", "gold", 60);
+
+  // Slight delay, then start fading image in WHILE text is being typed
+  await sleep(250);
   img.classList.add("show");
 
+  // Wait until gold line typing finishes
+  await goldPromise;
+
+  await newLine(); // end with one line break
+
+  // Blinking underscore cursor
   const cursor = document.createElement("span");
   cursor.className = "cursor";
   cursor.textContent = "_";
