@@ -154,13 +154,17 @@ async function run() {
 
   await typeText("Loading DOOM...");
   await progressBar();
-  await newLine(); // single line to keep even spacing
+  await newLine();
+
+  // New line before cheat code
+  await typeText("PLEASE ENTER CHEAT CODE:");
+  await newLine(); await newLine();
 
   // TYPE the red bold IDDQD
   await typeSpan("> IDDQD", "red");
   await newLine(); await newLine();
 
-  // Symmetrical dot lines around INITIALISING (8 above, 8 below)
+  // Symmetrical dot lines around INITIALISING
   await typeText("........");
   await newLine();
   await typeText("INITIALISING");
