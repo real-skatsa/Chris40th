@@ -158,9 +158,9 @@ async function run() {
 
   // New line before cheat code
   await typeText("PLEASE ENTER CHEAT CODE:");
-  await newLine(); await newLine();
+  await newLine(); // only one line break now (no double gap)
 
-  // TYPE the red bold IDDQD
+  // TYPE the red bold IDDQD directly below
   await typeSpan("> IDDQD", "red");
   await newLine(); await newLine();
 
